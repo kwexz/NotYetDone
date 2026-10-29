@@ -9,6 +9,15 @@
 
 ## verified
 
+- Проверка 6.1: WSL содержит Ubuntu и docker-desktop. `wsl -d Ubuntu --
+  sh -lc 'uname -s; command -v node; command -v npm; command -v bun;
+  command -v opencode'` подтвердил Linux, но native node/bun отсутствуют;
+  npm/opencode разрешаются только в Windows-пути /mnt/c. Это не пригодный
+  native POSIX runtime для честного сравнения untildone.
+- Фаза 5 blocked_external: нужен native POSIX Node/Bun и настроенный OpenCode
+  для сравнительного прогона. Ничего не устанавливал в WSL и не задавал
+  внешние ключи без отдельного согласования. macOS/Linux smoke not-run.
+
 - Фаза 4: schema V2 содержит session.compaction.ended; добавлена сводка
   сохранённого состояния к следующему обычному prompt без отдельного prompt.
   npm test: 33/33 pass. Evidence: docs/research/opencode-v2-compaction-events.md.
