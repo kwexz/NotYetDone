@@ -9,6 +9,16 @@
 
 ## verified
 
+- Фаза 6: imports policy.mjs только node:path и node:crypto; pure policy
+  tests без ctx. Создан пустой change claude-code-adapter, реализация не
+  начата. Финальные npm test 33/33, npm run check, strict validation — pass.
+  Все 39 задач отмечены; это не утверждение о живом E2E всех платформ.
+
+- POSIX comparison: <SSH_HOST> Node v24.22.2 установлен изолированно;
+  untildone a7e8c9d: 51/52 tests pass, SIGINT child cleanup failed.
+  Модельный прогон not-run, ключи не переносились. Решение D16: оставить
+  личным инструментом. Сравнение обновлено без заявления превосходства.
+
 - По разрешению пользователя на <SSH_HOST> установлен пользовательский
   toolchain в ~/.local/share/notyetdone-tools: npm 10.9.4 и @opencode/cli
   (opencode v2.2.1), используется существующий Node v22.22.1.

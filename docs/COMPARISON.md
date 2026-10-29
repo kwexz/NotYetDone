@@ -5,6 +5,23 @@
 
 ## Сводная таблица
 
+### POSIX-проверка 2026-10-29
+
+На <SSH_HOST> (Linux x86_64) проверен untildone commit
+`a7e8c9d003d7f0d81f3d69b6335862237e576c6a`, Node v24.22.2.
+Команда `node --test tests/*.test.ts`: **51 pass / 1 fail из 52**.
+Падает `SIGINT kills the in-flight executor child and exits 130`:
+тест обнаружил живой fake executor child после SIGINT. Это результат
+тестового harness аналога, не доказательство поведения с реальной моделью.
+Модельный прогон not-run: Deep Infra credentials не настраивались.
+Источник: package.json и tests/cli.e2e.test.ts указанного commit.
+
+Проверенный сценарий NotYetDone: продолжение в текущей интерактивной
+Windows/OpenCode V2 сессии без отдельного judge API key. Evidence: smoke 2
+в state/SMOKE.md и последующие живые продолжения в state/STATUS.md.
+untildone использует внешний supervisor; Windows-блокеры зафиксированы в
+docs/research/untildone-evaluation.md. Полноценная замена на POSIX не доказана.
+
 | Проект | Рантайм | Механизм | Сильное | Слабое |
 |---|---|---|---|---|
 | **NotYetDone** (этот) | OpenCode V2 | in-session plugin, событие + checklist | Windows, без ключей, дедуп событий | нет независимой проверки завершения |
