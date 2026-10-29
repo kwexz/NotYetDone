@@ -9,6 +9,15 @@
 
 ## verified
 
+- Исправлено удаление tool transform предыдущего контекста при замене
+  владельца: deactivate останавливает continuation, dispose очищает локальные
+  регистрации. Регрессионный тест на два контекста; 31/31 тест проходит.
+- После деплоя инструмент task_continuity появился и успешно выполнен живьём:
+  status прочитал старую запись createdAt=2026-10-29T10:03:06.171Z в новом
+  сервере PID 25728; resume сохранил runs=0, unchanged=0 и ownerToken.
+  enabled=true, phase=active. instance.active=false означает, что этот tool
+  принадлежит не текущему владельцу event loop; это не подтверждение smoke.
+
 - Чистый restart сервера подтверждён: opencode-cli PID 25728, StartTime
   2026-10-29 17:31:00 (локальное время), новый log run=b1ebecb2.
   В этом run task-continuity загружен три раза: 14:31:03.208Z,

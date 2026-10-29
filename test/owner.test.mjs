@@ -12,11 +12,12 @@ function broadcastCtx(directory, storage, options = {}) {
   const prompts = [];
   const cancelled = [];
   const subs = new Set();
+  let toolRegistrations = 0;
   let tool;
   const ctx = {
     location: {directory},
     storage: {get: async k => storage.get(k), set: async (k, v) => storage.set(k, v)},
-    tool: {transform: async cb => { cb({add: v => { tool = v; }}); return {dispose: async () => {}}; }},
+    tool: {transform: async cb => { cb({add: v => { tool = v; }}); toolRegistrations++; return {dispose: async () => { toolRegistrations--; }}; }},
     session: {
       get: async () => ({directory}),
       hook: async () => ({dispose: async () => {}}),
@@ -51,10 +52,28 @@ function broadcastCtx(directory, storage, options = {}) {
     getTool: () => tool,
     emit: event => { for (const sub of [...subs]) sub.push(event); },
     subscribers: () => subs.size,
+    toolRegistrations: () => toolRegistrations,
   };
 }
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 40));
+test('replacing the continuation owner preserves other context tool registrations', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-registry-'));
+  const first = broadcastCtx(directory, new Map());
+  const second = broadcastCtx(directory, new Map());
+  const disposeFirst = await plugin.setup(first.ctx);
+  const disposeSecond = await plugin.setup(second.ctx);
+  try {
+    assert.equal(first.subscribers(), 0);
+    assert.equal(second.subscribers(), 1);
+    assert.equal(first.toolRegistrations(), 1, 'another context must retain its tool');
+    assert.equal(second.toolRegistrations(), 1);
+  } finally {
+    await disposeFirst();
+    await disposeSecond();
+    await rm(directory, {recursive:true});
+  }
+});
 const waitFor = async (predicate, ms = 8000) => {
   const deadline = Date.now() + ms;
   while (Date.now() < deadline) {

@@ -28,18 +28,24 @@ export default Plugin.define({
   id: 'task-continuity',
   async setup(ctx) {
     const previous = globalThis[OWNER];
-    if (previous) await previous.dispose().catch(() => {});
+    if (previous) await (previous.deactivate ?? previous.dispose).call(previous).catch(() => {});
 
     const registrations = [];
     const controller = new AbortController();
     const checks = new Map();
     let disposed = false;
+    let cleaned = false;
     const owner = {
-      async dispose() {
+      async deactivate() {
         if (disposed) return;
         disposed = true;
         controller.abort();
         for (const check of checks.values()) check.abort();
+      },
+      async dispose() {
+        await owner.deactivate();
+        if (cleaned) return;
+        cleaned = true;
         for (const registration of registrations) await registration.dispose();
         if (globalThis[OWNER] === owner) globalThis[OWNER] = null;
       },
