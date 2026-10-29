@@ -32,25 +32,59 @@
 
 ## Принцип работы
 
-```text
-Успешный ход → checklist + сохранённое состояние → необязательная проверка
-  → работа осталась / проверка красная → лимиты → claim → одно продолжение
-  → checklist закрыт без гейта / проверка зелёная → остановка
+```mermaid
+flowchart LR
+  A[Успешный ход агента] --> B[Чтение checklist и состояния]
+  B --> C{Настроена проверка?}
+  C -->|Да| D[Запуск без shell]
+  D -->|Успех| E[Остановка: gate_passed]
+  D -->|Неуспех| F[Проверка лимитов]
+  C -->|Нет, задачи остались| F
+  C -->|Нет, checklist закрыт| G[Остановка: complete]
+  F -->|Лимиты не достигнуты| H[Сохранение claim, затем один prompt]
+  F -->|Лимит достигнут| I[Остановка: limit]
 ```
 
 Interrupt, ошибка или явная пауза отключают цикл. Отзыв уже поставленного
 prompt зависит от API рантайма и не гарантируется.
 
-## Installation / ?????????
+## Установка
+
+Используйте встроенный менеджер плагинов OpenCode V2: отдельная глобальная
+установка через npm или установщик npx не нужны.
 
 ```text
 opencode plugin add github:kwexz/NotYetDone
 ```
 
-OpenCode V2 installs Git packages and dependencies automatically. Requires Git.
-Restart the server after installation. Do not combine with a manual plugin copy.
-For a pinned version use `github:kwexz/NotYetDone#<commit>`.
-Clean remote installation: not-run. Development: `npm ci`, `npm test`, `npm run check`.
+Менеджер принимает Git package specifier, устанавливает зависимости и добавляет
+плагин в глобальную конфигурацию. Нужны Git и OpenCode V2. После установки
+перезапустите сервер, предварительно сохранив другие сессии. Перед подключением
+плагина изучите исходники: он получает доступ к вашим сессиям.
+Для воспроизводимости укажите проверенный commit:
+`github:kwexz/NotYetDone#<commit>`.
+
+Этот способ использует документированный интерфейс пакетов V2; чистая удалённая
+установка пока не проверена. Публикация в npm не нужна. Проверенная платформа
+runtime — Windows.
+
+### Разработка / ручная альтернатива
+
+```powershell
+git clone https://github.com/kwexz/NotYetDone.git
+cd NotYetDone
+npm ci
+npm test
+npm run check
+powershell -NoProfile -File scripts/install.ps1
+```
+
+Для ручной установки нужны Node.js 22+ и PowerShell 5.1+. Скрипт копирует
+runtime-файлы в глобальный каталог плагинов и устанавливает недостающие
+зависимости. Не подключайте одновременно ручную копию и пакет: сначала удалите
+старую копию. Используйте `opencode plugin list` и
+`opencode plugin remove --help` для просмотра и удаления установленных пакетов;
+ручные копии удаляются отдельно.
 
 ## Использование
 
@@ -76,6 +110,10 @@ Clean remote installation: not-run. Development: `npm ci`, `npm test`, `npm run 
 
 ```json
 {"action":"enable","path":"tasks.md"}
+```
+
+```json
+{"action":"status"}
 ```
 
 `status` показывает состояние, `pause` останавливает, `resume` возобновляет без

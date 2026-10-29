@@ -10,7 +10,8 @@ checklist and queues a continuation if work remains. It does not mistake a
 checked box for proof that the requirements have passed.
 
 **Status:** experimental, source installation only. Windows is the verified
-platform; Linux/macOS plugin smoke tests have not been performed. Tested with
+platform; Linux/macOS plugin smoke tests have not been performed; macOS testing
+is not planned. Tested with
 OpenCode 2.2.1 and `@opencode/plugin` 2.2.0. No npm release.
 
 ## Why this project
