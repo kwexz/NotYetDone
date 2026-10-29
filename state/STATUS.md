@@ -9,6 +9,21 @@
 
 ## verified
 
+- По разрешению пользователя на <SSH_HOST> установлен пользовательский
+  toolchain в ~/.local/share/notyetdone-tools: npm 10.9.4 и @opencode/cli
+  (opencode v2.2.1), используется существующий Node v22.22.1.
+  Проверены npm --version и opencode -v. Wrapper-скрипты лежат в bin этого
+  каталога; PATH, shell profile, системные пакеты и auth не менялись.
+  npm latest оказался несовместим с Node (требует 22.22.2), заменён на 10.9.4.
+  Попытка opencode-ai@2.2.1 дала ETARGET; правильный V2-пакет @opencode/cli.
+  Проверка аналога и модельный smoke пока not-run, ключи не переносились.
+
+- Проверен предложенный пользователем SSH-хост <SSH_HOST>
+  BatchMode=yes, ConnectTimeout=15; подключение успешно. Linux x86_64,
+  native Node v22.22.1 (/usr/bin/node), git и curl доступны.
+  command -v npm/bun/opencode не дал путей. POSIX-хост теперь доступен,
+  но сравнительный runtime ещё не подготовлен; удалённых изменений не было.
+
 - Проверка 6.1: WSL содержит Ubuntu и docker-desktop. `wsl -d Ubuntu --
   sh -lc 'uname -s; command -v node; command -v npm; command -v bun;
   command -v opencode'` подтвердил Linux, но native node/bun отсутствуют;
