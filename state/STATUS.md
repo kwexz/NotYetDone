@@ -9,6 +9,13 @@
 
 ## verified
 
+- Коммит фазы 2: `5c8bf11` (локальный, не установлен в активный плагин).
+- Фаза 3: resume сохраняет счётчики после dispose/setup на том же storage;
+  legacy-состояния дают различимые phase, block требует причину.
+  `npm test`: 30/30 pass. Это тестовый restart, не перезапуск OpenCode.
+- Фаза 3: живая проверка сохранения после перезапуска OpenCode — not-run;
+  задача 4.5 остаётся открытой. Следующая фаза не начинается до этого evidence.
+
 - Плагин загружается в OpenCode v2.2.1 и регистрирует инструмент
   `task_continuity`.
 - `npm test` — **27/27 pass** (policy, lifecycle, dedupe, owner/cancel,

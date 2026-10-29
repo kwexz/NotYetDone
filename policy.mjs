@@ -1,6 +1,19 @@
 import { resolve, relative, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 
+export function phaseOf(state) {
+  if (!state) return 'paused';
+  if (state.enabled) return 'active';
+  if (state.phase && state.phase !== 'active') return state.phase;
+  const reason = state.reason ?? '';
+  if (/blocked/i.test(reason)) return 'blocked_external';
+  if (/Gate check passed/.test(reason)) return 'gate_passed';
+  if (/Checklist complete/.test(reason)) return 'complete';
+  if (/Stagnation|Safety limit/.test(reason)) return 'limit';
+  if (/failed|error|No checkboxes/i.test(reason)) return 'error';
+  return 'paused';
+}
+
 
 export function taskPath(directory, path) {
   if (typeof path !== 'string' || !path.endsWith('.md')) throw new Error('Specify a Markdown task file');

@@ -82,11 +82,11 @@ acceptance. Каждая задача содержит способ провер
 
 ## 4. Фаза 3 — resume, blocked_external, состояния
 
-- [ ] 4.1 Ввести `phase` и вывод `phase` из старых записей без миграции данных.
+- [x] 4.1 Ввести `phase` и вывод `phase` из старых записей без миграции данных.
       Проверка: тест на legacy-состояние.
-- [ ] 4.2 Реализовать `action=resume` без сброса `runs`, `unchanged`, digest и
+- [x] 4.2 Реализовать `action=resume` без сброса `runs`, `unchanged`, digest и
       `idleTools`. Проверка: тест «pause → resume → счётчики те же».
-- [ ] 4.3 Реализовать `blocked_external` с причиной, отличный от `paused`.
+- [x] 4.3 Реализовать `blocked_external` с причиной, отличный от `paused`.
       Проверка: тест `status` для обоих состояний.
 - [ ] 4.4 Сделать `status` различимым: `active`, `paused`, `blocked_external`,
       `complete`, `limit`, `error`, `gate_passed`. Проверка: тест на каждый

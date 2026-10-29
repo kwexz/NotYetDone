@@ -33,6 +33,11 @@ interrupt always win.
 
 ## Opt-in check example
 
+`action=resume` reactivates saved control without resetting `runs`, `unchanged`,
+digest or `idleTools`. `status.phase` distinguishes `active`, `paused`,
+`blocked_external`, `complete`, `limit`, `error` and `gate_passed`. A block
+requires a concrete reason and stops continuation until explicit resume.
+
 Only when the user explicitly authorizes running the check, enable with:
 
 ```json

@@ -309,6 +309,32 @@ test('interrupt is consumed while a check is running and prevents continuation',
   }
 });
 
+test('resume preserves counters across plugin restart and block has its own phase', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-resume-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  let dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action:'enable', path:'tasks.md'}, {sessionID:'s'});
+    h.emit(success('evt_1'));
+    await waitFor(() => h.prompts.length === 1);
+    await h.getTool().execute({action:'pause'}, {sessionID:'s'});
+    const before = storage.get('session:s');
+    await dispose();
+    dispose = await plugin.setup(h.ctx);
+    const result = JSON.parse((await h.getTool().execute({action:'resume'}, {sessionID:'s'})).content);
+    assert.equal(result.phase, 'active');
+    for (const field of ['runs','unchanged','digest','idleTools']) assert.equal(result[field], before[field]);
+    const blocked = JSON.parse((await h.getTool().execute({action:'block', reason:'Missing external credential'}, {sessionID:'s'})).content);
+    assert.equal(blocked.phase, 'blocked_external');
+    assert.equal(blocked.enabled, false);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive:true});
+  }
+});
+
 test('a green check stops the loop even when checkboxes remain', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-green-'));
   await writeFile(join(directory, 'tasks.md'), '- [ ] One');
