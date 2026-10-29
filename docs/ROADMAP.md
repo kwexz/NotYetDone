@@ -38,10 +38,11 @@
 
 ## Фаза 3 — resume и blocked_external
 
-- [ ] `action=resume` без сброса счётчиков.
-- [ ] `blocked_external` как отдельное состояние с причиной и списком
+- [x] `action=resume` без сброса счётчиков.
+- [x] `blocked_external` как отдельное состояние с причиной и списком
       сделанного.
-- [ ] `status` различает paused / blocked / complete / limit.
+- [x] `status` различает active / paused / blocked_external / complete / limit /
+      error / gate_passed.
 
 **Acceptance:** после перезапуска OpenCode состояние читается и resume
 продолжает с теми же счётчиками.
