@@ -41,32 +41,16 @@
 Interrupt, ошибка или явная пауза отключают цикл. Отзыв уже поставленного
 prompt зависит от API рантайма и не гарантируется.
 
-## Установка на Windows
+## Installation / ?????????
 
-Нужны Git, **Node.js 22+**, npm, Windows PowerShell 5.1+ или PowerShell 7 и
-OpenCode V2. Первый smoke запускайте в отдельной короткой сессии.
-
-```powershell
-git clone https://github.com/kwexz/NotYetDone.git
-cd NotYetDone
-npm ci
-npm test
-npm run check
-powershell -NoProfile -File scripts/install.ps1
+```text
+opencode plugin add github:kwexz/NotYetDone
 ```
 
-Скрипт копирует три runtime-модуля в
-`%USERPROFILE%\.config\opencode\plugins\task-continuity`, создаёт manifest,
-если его нет, и устанавливает недостающие зависимости. Модель и permissions не меняются.
-Если каталог уже есть, проверьте его содержимое: runtime-файлы будут
-заменены; существующий manifest сохраняется.
-
-**Перезапустите сервер OpenCode**, а не только окно Desktop. Сначала сохраните
-работу: общий сервер может обслуживать несколько сессий. Команды управления
-сервисом описаны в [документации V2](https://opencode.ai/v2/docs/cli).
-
-Для удаления остановите сервер и удалите только установленный каталог
-`task-continuity`. Состояние плагина и файлы проекта этим не удаляются.
+OpenCode V2 installs Git packages and dependencies automatically. Requires Git.
+Restart the server after installation. Do not combine with a manual plugin copy.
+For a pinned version use `github:kwexz/NotYetDone#<commit>`.
+Clean remote installation: not-run. Development: `npm ci`, `npm test`, `npm run check`.
 
 ## Использование
 

@@ -51,10 +51,26 @@ flowchart LR
 Interruption, failure or an explicit pause disables continuation. Revocation of
 an already queued prompt is best-effort and depends on runtime API support.
 
-## Install on Windows
+## Install
 
-Requirements: Git, **Node.js 22+**, npm, Windows PowerShell 5.1+ or PowerShell 7,
-and OpenCode V2. Use a disposable session for the first smoke test.
+Use OpenCode V2's built-in plugin manager; no global npm package or npx
+installer is needed:
+
+```text
+opencode plugin add github:kwexz/NotYetDone
+```
+
+The manager accepts Git package specifiers, installs dependencies and adds the
+plugin to global configuration. Git and an OpenCode V2 installation are
+required. Restart the OpenCode server after installation; save other sessions
+first. Review the source before granting a plugin access to your sessions.
+For reproducibility, use `github:kwexz/NotYetDone#<commit>` with a reviewed commit.
+
+This Git-based installation uses the documented V2 package interface; a clean
+remote installation has not yet been exercised. No npm release is required.
+Windows is the verified runtime platform.
+
+### Development / manual fallback
 
 ```powershell
 git clone https://github.com/kwexz/NotYetDone.git
@@ -65,18 +81,11 @@ npm run check
 powershell -NoProfile -File scripts/install.ps1
 ```
 
-The installer copies the three runtime modules into
-`%USERPROFILE%\.config\opencode\plugins\task-continuity`, creates a plugin
-package manifest if absent and installs dependencies if missing. It does not alter your model
-or permissions. Review an existing target directory before installing: runtime
-files will be replaced; an existing manifest is preserved.
-
-**Restart the OpenCode server**, not only its Desktop window. Save other work
-first: the shared server may serve multiple sessions. See the V2
-[service documentation](https://opencode.ai/v2/docs/cli) for your installation.
-
-To uninstall, close the server and remove only the installed
-`task-continuity` directory. Plugin state and project files are not removed.
+Node.js 22+ and PowerShell 5.1+ are required for this fallback. It copies runtime
+files to the global plugin directory and installs missing dependencies. Do not
+combine the manual copy and package installation: remove the old copy first.
+Use `opencode plugin list` and `opencode plugin remove --help` to inspect and
+remove package installations; manual copies must be removed separately.
 
 ## Use
 

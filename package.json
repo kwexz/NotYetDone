@@ -15,6 +15,7 @@
   "type": "module",
   "description": "Evidence-aware continuation for coding agents. OpenCode V2 adapter.",
   "exports": "./index.mjs",
+  "files": ["index.mjs", "policy.mjs", "gate.mjs", "README.md", "README.ru.md", "LICENSE"],
   "engines": {
     "node": ">=22"
   },
