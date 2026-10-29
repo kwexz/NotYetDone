@@ -175,3 +175,51 @@ test('pause marks the prompt cancelled when inbox.cancel is unavailable', async 
     await rm(directory, {recursive: true});
   }
 });
+
+test('three idle successes stop on stagnation after two prompts', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-idle-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action: 'enable', path: 'tasks.md'}, {sessionID: 's'});
+    h.emit(success('evt_1'));
+    await tick();
+    h.emit(success('evt_2'));
+    await tick();
+    h.emit(success('evt_3'));
+    await tick();
+    const state = storage.get('session:s');
+    assert.equal(h.prompts.length, 2, 'the third run must not queue a prompt');
+    assert.equal(state.enabled, false);
+    assert.match(state.reason, /Stagnation/);
+    assert.equal(state.idleTools, 2);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive: true});
+  }
+});
+
+test('tool.called increments the counter and a success resets it', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-tools-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action: 'enable', path: 'tasks.md'}, {sessionID: 's'});
+    h.emit({id: 'tool_1', type: 'session.tool.called', data: {sessionID: 's', id: 'call_1'}});
+    await tick();
+    assert.equal(storage.get('session:s').toolEvents, 1);
+    h.emit(success('evt_1'));
+    await tick();
+    const state = storage.get('session:s');
+    assert.equal(state.toolEvents, 0);
+    assert.equal(state.idleTools, 0);
+    assert.equal(state.enabled, true);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive: true});
+  }
+});

@@ -8,6 +8,7 @@ const TYPES = [
   'session.execution.succeeded',
   'session.execution.interrupted',
   'session.execution.failed',
+  'session.tool.called',
 ];
 
 const SEEN_LIMIT = 256;
@@ -93,7 +94,7 @@ export default Plugin.define({
           let state = await ctx.storage.get(key(sessionID));
           if (input.action === 'enable') {
             const session = await ctx.session.get({sessionID});
-            state = {enabled:true,path:input.path,directory:session.directory ?? session.location?.directory ?? ctx.location.directory,runs:0,unchanged:0,lastEventID:null,lastQueuedAt:0,history:[],ownerToken:crypto.randomUUID(),createdAt:new Date().toISOString()};
+            state = {enabled:true,path:input.path,directory:session.directory ?? session.location?.directory ?? ctx.location.directory,runs:0,unchanged:0,toolEvents:0,idleTools:0,lastEventID:null,lastQueuedAt:0,history:[],ownerToken:crypto.randomUUID(),createdAt:new Date().toISOString()};
             await report(state);
           } else if (input.action === 'pause' || input.action === 'block') {
             if (input.action === 'block' && !input.reason?.trim()) throw new Error('Describe the external blocker');
@@ -134,6 +135,13 @@ export default Plugin.define({
         if (event.type === 'session.execution.started') {
           const state = await ctx.storage.get(key(sessionID));
           if (state?.pendingPrompt) await ctx.storage.set(key(sessionID),{...state,pendingPrompt:null,lastStartedEventID:identity ?? state.lastStartedEventID});
+          continue;
+        }
+
+        // Count one event per tool invocation; deltas and progress are noisy.
+        if (event.type === 'session.tool.called') {
+          const state = await ctx.storage.get(key(sessionID));
+          if (state?.enabled) await ctx.storage.set(key(sessionID),{...state,toolEvents:(state.toolEvents ?? 0) + 1,lastToolAt:new Date().toISOString()});
           continue;
         }
 

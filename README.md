@@ -23,7 +23,9 @@ interrupt always win.
   releases the previous subscription instead of adding a second one.
 - Pause, stop and block mark any queued continuation as cancelled and try to
   revoke it when the runtime exposes `session.inbox.cancel`.
-- Bounded: 12 continuations, 3 repeats with an unchanged checklist.
+- Bounded: 12 continuations, 3 repeats with an unchanged checklist, and
+  stagnation after 2 runs with no tool calls while the checklist did not move.
+  `status` shows `runs`, `unchanged`, `idleTools` and `toolEvents`.
 
 ## What it does not do
 
