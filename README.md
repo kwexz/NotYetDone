@@ -19,6 +19,10 @@ interrupt always win.
 - Never runs twice for the same durable event: event identity is stored in
   memory and in plugin storage, so a replay after reconnect or reload is
   ignored.
+- Keeps a single continuation owner per process: a repeated plugin load
+  releases the previous subscription instead of adding a second one.
+- Pause, stop and block mark any queued continuation as cancelled and try to
+  revoke it when the runtime exposes `session.inbox.cancel`.
 - Bounded: 12 continuations, 3 repeats with an unchanged checklist.
 
 ## What it does not do
@@ -26,6 +30,9 @@ interrupt always win.
 - It does not prove completion. A checked box is not a passing test. Evidence
   and verification stay the agent's job.
 - It does not run commands from task files.
+- It does not guarantee revocation of an already queued prompt: this depends on
+  the runtime exposing `session.inbox.cancel`. If it does not, the prompt stays
+  marked as cancelled in `status`, but may still be delivered.
 - It does not start new work when the checklist is already complete.
 - It does not survive a disabled plugin: events are live-only.
 
@@ -57,9 +64,9 @@ The agent calls the `task_continuity` tool (`enable`, `pause`, `status`,
 
 ## Status
 
-See [`state/STATUS.md`](state/STATUS.md). Short version: 9/9 unit tests pass;
+See [`state/STATUS.md`](state/STATUS.md). Short version: 14/14 unit tests pass;
 a real auto-continuation cycle was observed once; a live re-test after the
-duplicate-prompt fix has **not** been run.
+single-owner fix has **not** been run yet.
 
 ## Documentation
 
