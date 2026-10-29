@@ -2,6 +2,16 @@
   "name": "notyetdone",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "author": "kwexz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kwexz/NotYetDone.git"
+  },
+  "homepage": "https://github.com/kwexz/NotYetDone#readme",
+  "bugs": {
+    "url": "https://github.com/kwexz/NotYetDone/issues"
+  },
   "type": "module",
   "description": "Evidence-aware continuation for coding agents. OpenCode V2 adapter.",
   "exports": "./index.mjs",
