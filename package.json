@@ -1,0 +1,19 @@
+{
+  "name": "notyetdone",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-aware continuation for coding agents. OpenCode V2 adapter.",
+  "exports": "./index.mjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check index.mjs && node --check policy.mjs",
+    "install:plugin": "pwsh -NoProfile -File scripts/install.ps1"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.2.0"
+  }
+}
