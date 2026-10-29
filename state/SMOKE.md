@@ -17,9 +17,29 @@
 В каждом ходе — ровно один пункт, затем конец хода. Ожидаемое поведение то же:
 2 автоматических продолжения, 0 лишних, финал `Checklist complete`.
 
-- [ ] 4. Дописать строку `smoke2-1` в `state/SMOKE_LOG.md`.
-- [ ] 5. Дописать строку `smoke2-2` в `state/SMOKE_LOG.md`.
-- [ ] 6. Дописать строку `smoke2-3` в `state/SMOKE_LOG.md`.
+- [x] 4. Дописать строку `smoke2-1` в `state/SMOKE_LOG.md`.
+- [x] 5. Дописать строку `smoke2-2` в `state/SMOKE_LOG.md`.
+- [x] 6. Дописать строку `smoke2-3` в `state/SMOKE_LOG.md`.
+
+### Evidence прогона 2 — PASS
+
+- Дата: 2026-10-29, OpenCode v2.2.1, Windows, pid 16964.
+- Контекст: та же сессия реализации, не отдельная короткая. Это отклонение от
+  протокола; на `tasks.md` контроль был поставлен на `pause`, затем включён
+  только `state/SMOKE.md`, и в ходе прогона выполнялись только пункты 4–6.
+- Автоматических продолжений: **2** (после пункта 4 и после пункта 5).
+- Лишних продолжений: **0**. Третьего prompt после закрытия checklist не
+  пришло; следующий ход начался только с ручного сообщения пользователя.
+- `status` после пункта 6: `enabled: false`,
+  `reason: "Checklist complete; acceptance still requires evidence"`,
+  `runs: 2`, `pending: 0`, `pendingPrompt: null`.
+- События: `evt_REDACTED` (10:01:05Z, pending 2),
+  `evt_REDACTED` (10:01:12Z, pending 1),
+  `evt_REDACTED` (10:01:45Z, pending 0).
+- Владелец: `instance.active: true`, token
+  `00000000-0000-4000-8000-000000000000`.
+- Отзыв: `revoke.available: false` — ограничение из «Проверки 1.5»
+  подтверждено повторно.
 
 ## Что должно произойти
 
@@ -29,7 +49,7 @@
    `Checklist complete`.
 4. Всего автоматических prompt: ровно 2. Третий — дефект.
 
-## Evidence
+## Evidence прогона 1 — FAIL
 
 Заполнено после прогона 2026-10-29.
 

@@ -65,8 +65,8 @@ The agent calls the `task_continuity` tool (`enable`, `pause`, `status`,
 ## Status
 
 See [`state/STATUS.md`](state/STATUS.md). Short version: 14/14 unit tests pass;
-a real auto-continuation cycle was observed once; a live re-test after the
-single-owner fix has **not** been run yet.
+the live smoke after the single-owner fix passed with 2 continuations and no
+extras. A clean-restart count of `loading plugin` lines has **not** been run.
 
 ## Documentation
 
