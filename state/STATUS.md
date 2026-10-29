@@ -9,6 +9,11 @@
 
 ## verified
 
+- Фаза 4: schema V2 содержит session.compaction.ended; добавлена сводка
+  сохранённого состояния к следующему обычному prompt без отдельного prompt.
+  npm test: 33/33 pass. Evidence: docs/research/opencode-v2-compaction-events.md.
+  5.3 — условная ветка не применима (событие есть); живая компакция not-run.
+
 - Acceptance фазы 3: unit restart/resume плюс живой status/resume после
   серверного restart (PID 25728, сохранённая запись от 10:03Z). Счётчики
   runs=0 и unchanged=0 сохранены; ненулевые счётчики проверены только тестом.

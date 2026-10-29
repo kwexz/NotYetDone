@@ -10,6 +10,7 @@ const TYPES = [
   'session.execution.interrupted',
   'session.execution.failed',
   'session.tool.called',
+  'session.compaction.ended',
 ];
 
 const SEEN_LIMIT = 256;
@@ -148,6 +149,13 @@ export default Plugin.define({
         const sessionID = event.data?.sessionID;
         if (!sessionID) continue;
         const identity = eventIdentity(event);
+        if (event.type === 'session.compaction.ended') {
+          const state = await ctx.storage.get(key(sessionID));
+          if (state && state.lastCompactionEventID !== identity) {
+            await ctx.storage.set(key(sessionID), {...state, lastCompactionEventID:identity, recoveryPending:true});
+          }
+          continue;
+        }
 
         // Cancellation must not wait behind a running check in this iterator.
         if (event.type === 'session.execution.interrupted' || event.type === 'session.execution.failed') {
@@ -229,8 +237,15 @@ export default Plugin.define({
           const progressNote = report_.pending
             ? 'Unchecked tasks remain.'
             : 'The checklist is closed, but the check still fails. Fix the failure without reopening completed items unless their evidence is wrong.';
+          const recoveryNote = state.recoveryPending
+            ? ` Recovery after compaction: task=${state.path}, phase=${phaseOf(state)}, runs=${state.runs ?? 0}, unchanged=${state.unchanged ?? 0}, idleTools=${state.idleTools ?? 0}. Re-read the task and its evidence; do not reset saved progress.`
+            : '';
+          if (state.recoveryPending) {
+            state = {...state, recoveryPending:false};
+            await ctx.storage.set(key(sessionID), state);
+          }
           const completionNote = state.check ? 'A failed check requires repair even when every checkbox is checked.' : `If every checkbox in ${state.path} is already checked, do not start new work: state in one line that the task is complete and stop.`;
-          const queued = await ctx.session.prompt({sessionID,text:`Continue the authorized active task using ${state.path}. ${progressNote} Read current task/evidence and implement the next unfinished requirement, verify it, then update its checkbox only when acceptance passes. Do not ask for continuation. Respect user exclusions and stop instructions. ${completionNote} If genuinely blocked externally, use task_continuity action=block with a specific reason. A complete checklist is not proof of test acceptance.${gateNote}`,metadata:{taskContinuity:true},delivery:'queue'});
+          const queued = await ctx.session.prompt({sessionID,text:`Continue the authorized active task using ${state.path}. ${progressNote} Read current task/evidence and implement the next unfinished requirement, verify it, then update its checkbox only when acceptance passes. Do not ask for continuation. Respect user exclusions and stop instructions. ${completionNote} If genuinely blocked externally, use task_continuity action=block with a specific reason. A complete checklist is not proof of test acceptance.${gateNote}${recoveryNote}`,metadata:{taskContinuity:true},delivery:'queue'});
           if (queued?.id) {
             // Keep a pause that landed while the prompt was being queued: if the
             // claim was already cancelled, cancel the now-known inbox item too.

@@ -354,6 +354,28 @@ test('resume preserves counters across plugin restart and block has its own phas
   }
 });
 
+test('compaction adds recovery context to the next continuation without a separate prompt', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-compact-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action:'enable', path:'tasks.md'}, {sessionID:'s'});
+    h.emit({id:'compact_1', type:'session.compaction.ended', data:{sessionID:'s', reason:'manual'}});
+    await waitFor(() => storage.get('session:s')?.recoveryPending);
+    assert.equal(h.prompts.length, 0);
+    h.emit(success('evt_1'));
+    await waitFor(() => h.prompts.length === 1);
+    assert.match(h.prompts[0].text, /Recovery after compaction/);
+    assert.equal(storage.get('session:s').runs, 1);
+    assert.equal(storage.get('session:s').recoveryPending, false);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive:true});
+  }
+});
+
 test('a green check stops the loop even when checkboxes remain', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-green-'));
   await writeFile(join(directory, 'tasks.md'), '- [ ] One');
