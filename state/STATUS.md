@@ -152,6 +152,10 @@
 
 ## not-run
 
+- macOS smoke: **not planned** — user confirmed that no Mac host will be
+  available. This is outside the supported Windows-first scope, not a failed
+  verification.
+
 - Поведение на macOS и Linux.
 - Длительный цикл (ближе к лимиту 12 продолжений).
 - Поведение при compaction сессии.
