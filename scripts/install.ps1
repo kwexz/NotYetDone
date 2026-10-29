@@ -4,7 +4,7 @@
   Deploy the NotYetDone plugin into the global OpenCode plugin directory.
 
 .DESCRIPTION
-  Default mode copies index.mjs and policy.mjs into
+  Default mode copies index.mjs, policy.mjs and gate.mjs into
   %USERPROFILE%\.config\opencode\plugins\task-continuity and leaves the
   existing node_modules in place.
 
@@ -30,7 +30,7 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $target = Join-Path $env:USERPROFILE '.config\opencode\plugins\task-continuity'
 
-foreach ($file in 'index.mjs', 'policy.mjs') {
+foreach ($file in 'index.mjs', 'policy.mjs', 'gate.mjs') {
   if (-not (Test-Path (Join-Path $repo $file))) {
     throw "Missing $file in $repo"
   }
@@ -50,7 +50,7 @@ if ($Mode -eq 'junction') {
   Write-Host "Linked $target -> $repo"
 } else {
   New-Item -ItemType Directory -Force $target | Out-Null
-  foreach ($file in 'index.mjs', 'policy.mjs') {
+  foreach ($file in 'index.mjs', 'policy.mjs', 'gate.mjs') {
     Copy-Item (Join-Path $repo $file) (Join-Path $target $file) -Force
   }
   $pluginPackage = Join-Path $target 'package.json'

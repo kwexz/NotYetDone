@@ -1,6 +1,7 @@
 import { resolve, relative, isAbsolute } from 'node:path';
 import { createHash } from 'node:crypto';
 
+
 export function taskPath(directory, path) {
   if (typeof path !== 'string' || !path.endsWith('.md')) throw new Error('Specify a Markdown task file');
   const full = resolve(directory, path);
@@ -15,10 +16,14 @@ export function inspect(text) {
   return { total: tasks.length, pending: pending.length, digest: createHash('sha256').update(text).digest('hex') };
 }
 
-export function advance(state, report) {
+export function advance(state, report, options = {}) {
   if (!state.enabled) return { ...state, reason: 'paused' };
   if (!report.total) return { ...state, enabled: false, reason: 'No checkboxes found; check task file' };
-  if (!report.pending) return { ...state, enabled: false, reason: 'Checklist complete; acceptance still requires evidence' };
+  // With an opt-in `check`, a complete checklist is not enough to stop: the
+  // check decides. The caller passes completeTerminal=false and the counters
+  // below still bound the loop.
+  const completeTerminal = options.completeTerminal ?? true;
+  if (!report.pending && completeTerminal) return { ...state, enabled: false, reason: 'Checklist complete; acceptance still requires evidence' };
   const toolEvents = state.toolEvents ?? 0;
   const unchanged = state.digest === report.digest ? (state.unchanged ?? 0) + 1 : 0;
   // Stagnation needs both signals: the checklist did not move and the agent

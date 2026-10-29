@@ -17,6 +17,17 @@ test('stagnation stops before the hard limit', () => {
   assert.equal(state.runs, 3);
   assert.equal(state.idleTools, 2);
 });
+test('a complete checklist keeps running when an opt-in check decides', () => {
+  let state = { enabled: true };
+  const report = inspect('- [x] A');
+  state = advance(state, report, { completeTerminal: false });
+  assert.equal(state.enabled, true, 'the check, not the checkbox, ends this loop');
+  assert.equal(state.runs, 1);
+  state = advance(state, report, { completeTerminal: false });
+  state = advance(state, report, { completeTerminal: false });
+  assert.equal(state.enabled, false, 'the counters still bound a closed checklist');
+  assert.match(state.reason, /Stagnation/);
+});
 test('tool events reset stagnation and the per-run counter', () => {
   let state = {enabled: true};
   const report = inspect('- [ ] A');

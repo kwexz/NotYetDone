@@ -1,6 +1,6 @@
 # Статус
 
-Обновлено: 2026-10-29. Ветка: `main` (локальный репозиторий, удалённого нет).
+Обновлено: 2026-10-29. Ветка: `phase-2-opt-in-check` (локально).
 
 ## Что это
 
@@ -11,8 +11,21 @@
 
 - Плагин загружается в OpenCode v2.2.1 и регистрирует инструмент
   `task_continuity`.
-- `npm test` — **18/18 pass** (policy, lifecycle, dedupe, owner/cancel,
-  stagnation).
+- `npm test` — **27/27 pass** (policy, lifecycle, dedupe, owner/cancel,
+  stagnation, opt-in gate). Гейт запускает реальные дочерние процессы Node;
+  события OpenCode в интеграционных тестах фейковые, это не живой E2E.
+- Фаза 2 в работе: красный check продолжает закрытый checklist, зелёный
+  останавливает цикл; pause во время check не затирается его результатом.
+  Acceptance фазы пока не отмечен; живой smoke гейта — not-run.
+- Дополнительная сверка verification-gate: превышение лимита вывода считается
+  неуспешным гейтом даже при exit 0; Windows batch-файлы отклоняются, shell
+  не используется. Повторный `npm test`: 27/27 pass.
+- Дефект ожидания interrupt исправлен: обработка успеха не блокирует iterator,
+  interruption сохраняет остановку и отменяет активный check. Регрессионный
+  тест `interrupt is consumed while a check is running...` проходит.
+- Acceptance фазы 2 пройден тестами: красный/зелёный гейт, таймаут,
+  усечение вывода, pause и interrupt. Пример README проверен командой
+  `node --test test/gate.test.mjs` (5/5). Живой smoke гейта — not-run.
 - `npm run check` — ok.
 - Один процесс-владелец продолжения: повторный `plugin.setup` освобождает
   предыдущую подписку (`test/owner.test.mjs`). После hot reload 2026-10-29

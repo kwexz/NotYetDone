@@ -26,12 +26,32 @@ interrupt always win.
 - Bounded: 12 continuations, 3 repeats with an unchanged checklist, and
   stagnation after 2 runs with no tool calls while the checklist did not move.
   `status` shows `runs`, `unchanged`, `idleTools` and `toolEvents`.
+- Optional deterministic gate: pass `check` when enabling and the loop ends only
+  when that command exits 0. A failing check keeps the loop going, even after
+  every box is ticked, and its output tail is added to the next prompt. The
+  command comes from the enabling tool call, never from the task file.
+
+## Opt-in check example
+
+Only when the user explicitly authorizes running the check, enable with:
+
+```json
+{"action":"enable","path":"tasks.md","check":{"file":"node","args":["--test","test/gate.test.mjs"],"cwd":".","timeoutMs":120000,"maxOutput":8000}}
+```
+
+`status` includes `lastCheck` with exit code, duration, timeout flag and capped
+output tail. Windows batch files (`.cmd`/`.bat`) are rejected; use an executable
+directly. Exit 0 ends the loop, not a declaration that all acceptance criteria
+have been proven. The existing safety counters still stop repeated failures.
 
 ## What it does not do
 
 - It does not prove completion. A checked box is not a passing test. Evidence
   and verification stay the agent's job.
-- It does not run commands from task files.
+- It does not run commands from task files. The optional `check` is a separate
+  argument to the tool call and is rejected unless `action=enable`.
+- It does not sandbox the check: it runs with your user rights, network and
+  filesystem access. Treat `check` as you would any command you type yourself.
 - It does not guarantee revocation of an already queued prompt: this depends on
   the runtime exposing `session.inbox.cancel`. If it does not, the prompt stays
   marked as cancelled in `status`, but may still be delivered.

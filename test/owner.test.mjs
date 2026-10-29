@@ -55,6 +55,14 @@ function broadcastCtx(directory, storage, options = {}) {
 }
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 40));
+const waitFor = async (predicate, ms = 8000) => {
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    if (await predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  throw new Error('timed out waiting for the expected state');
+};
 const success = (id, sessionID = 's') => ({id, type: 'session.execution.succeeded', data: {sessionID}});
 
 test('a queued prompt is claimed in storage before delivery', async () => {
@@ -223,3 +231,110 @@ test('tool.called increments the counter and a success resets it', async () => {
     await rm(directory, {recursive: true});
   }
 });
+
+test('a red check keeps a closed checklist running and ships the output tail', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-red-'));
+  await writeFile(join(directory, 'tasks.md'), '- [x] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await assert.rejects(
+      h.getTool().execute({action: 'pause', check: {file: 'node'}}, {sessionID: 's'}),
+      /only accepted with action=enable/,
+    );
+    await assert.rejects(
+      h.getTool().execute({action: 'enable', path: 'tasks.md', check: {file: '../escape.js'}}, {sessionID: 's'}),
+      /stay inside the project/,
+    );
+    await h.getTool().execute({
+      action: 'enable',
+      path: 'tasks.md',
+      check: {file: 'node', args: ['-e', 'console.error("CHECK-FAIL");process.exit(2)']},
+    }, {sessionID: 's'});
+
+    h.emit(success('evt_1'));
+    await waitFor(() => h.prompts.length === 1);
+    const state = storage.get('session:s');
+    assert.equal(state.enabled, true, 'a failed check must not stop the loop');
+    assert.equal(state.lastCheck.code, 2);
+    assert.equal(state.lastCheck.passed, false);
+    assert.match(h.prompts[0].text, /CHECK-FAIL/);
+    assert.match(h.prompts[0].text, /check still fails/);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive: true});
+  }
+});
+
+test('pause during a running check wins over its result', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-pause-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action:'enable', path:'tasks.md', check:{file:'node', args:['-e', 'setTimeout(() => process.exit(1), 2000)']}}, {sessionID:'s'});
+    h.emit(success('evt_1'));
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await h.getTool().execute({action:'pause'}, {sessionID:'s'});
+    await new Promise(resolve => setTimeout(resolve, 300));
+    assert.equal(storage.get('session:s').enabled, false);
+    assert.equal(storage.get('session:s').reason, 'Paused by request');
+    assert.equal(h.prompts.length, 0);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive:true});
+  }
+});
+
+test('interrupt is consumed while a check is running and prevents continuation', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-interrupt-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({action:'enable', path:'tasks.md', check:{file:'node', args:['-e', 'setTimeout(() => process.exit(1), 5000)']}}, {sessionID:'s'});
+    h.emit(success('evt_1'));
+    await new Promise(resolve => setTimeout(resolve, 200));
+    h.emit({id:'stop_1', type:'session.execution.interrupted', data:{sessionID:'s'}});
+    await waitFor(() => storage.get('session:s')?.enabled === false, 1500);
+    await new Promise(resolve => setTimeout(resolve, 150));
+    assert.equal(h.prompts.length, 0);
+    assert.match(storage.get('session:s').reason, /interrupted/);
+  } finally {
+    await dispose();
+    await rm(directory, {recursive:true});
+  }
+});
+
+test('a green check stops the loop even when checkboxes remain', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'continuity-gate-green-'));
+  await writeFile(join(directory, 'tasks.md'), '- [ ] One');
+  const storage = new Map();
+  const h = broadcastCtx(directory, storage);
+  const dispose = await plugin.setup(h.ctx);
+  try {
+    await h.getTool().execute({
+      action: 'enable',
+      path: 'tasks.md',
+      check: {file: 'node', args: ['-e', 'process.exit(0)'], timeoutMs: 20000, maxOutput: 500},
+    }, {sessionID: 's'});
+    h.emit(success('evt_1'));
+    await waitFor(() => storage.get('session:s')?.lastCheck);
+    const state = storage.get('session:s');
+    assert.equal(state.enabled, false);
+    assert.equal(state.reason, 'Gate check passed');
+    assert.equal(state.lastCheck.code, 0);
+    const status = JSON.parse((await h.getTool().execute({action:'status'}, {sessionID:'s'})).content);
+    assert.equal(status.lastCheck.code, 0);
+    assert.equal(typeof status.lastCheck.durationMs, 'number');
+    assert.equal(status.lastCheck.truncated, false);
+    assert.equal(h.prompts.length, 0, 'a passing check queues nothing');
+  } finally {
+    await dispose();
+    await rm(directory, {recursive: true});
+  }
+});
+
