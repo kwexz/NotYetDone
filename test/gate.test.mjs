@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { parseCheck, resolveExecutable, runCheck } from '../gate.mjs';
 
 const node = 'node';
@@ -38,7 +38,9 @@ test('a command name resolves through PATH and defaults are filled in', async ()
     const executable = await resolveExecutable(root, node);
     assert.ok(executable.toLowerCase().includes('node'), executable);
     const check = await parseCheck(root, { file: node, args: ['-e', 'process.exit(0)'] });
-    assert.equal(check.cwd, root);
+    // Windows may hand back an 8.3 short path (RUNNER~1) where the caller
+    // created the directory under the full name, and vice versa.
+    assert.equal(relative(root, check.cwd), '');
     assert.equal(check.timeoutMs, 120_000);
     assert.equal(check.maxOutput, 8_000);
     assert.deepEqual(check.args, ['-e', 'process.exit(0)']);
