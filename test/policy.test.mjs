@@ -54,3 +54,20 @@ test('tool events reset stagnation and the per-run counter', () => {
   assert.equal(state.toolEvents, 0, 'counter resets after a successful run');
   assert.equal(state.unchanged, 2);
 });
+test('active work within one unchecked task does not hit the unchanged-checklist limit', () => {
+  let state = {enabled:true};
+  const report = inspect('- [ ] Implement a complex feature');
+  for (let turn = 0; turn < 6; turn++) {
+    state = advance({...state, toolEvents:1}, report);
+    assert.equal(state.enabled, true, `active turn ${turn + 1} should continue`);
+  }
+  assert.equal(state.unchanged, 5);
+  assert.equal(state.idleTools, 0);
+});
+test('active tool calls cannot bypass the total continuation limit', () => {
+  let state = {enabled:true};
+  const report = inspect('- [ ] Feature');
+  for (let turn = 0; turn < 13; turn++) state = advance({...state, toolEvents:1}, report);
+  assert.equal(state.enabled, false);
+  assert.match(state.reason, /12/);
+});

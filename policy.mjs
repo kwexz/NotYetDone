@@ -44,6 +44,6 @@ export function advance(state, report, options = {}) {
   const idleTools = unchanged > 0 && toolEvents === 0 ? (state.idleTools ?? 0) + 1 : 0;
   const runs = (state.runs ?? 0) + 1;
   if (idleTools >= 2) return { ...state, enabled: false, unchanged, idleTools, runs, toolEvents: 0, reason: 'Stagnation: no tool activity and unchanged checklist' };
-  if (unchanged >= 3 || runs > 12) return { ...state, enabled: false, unchanged, idleTools, runs, toolEvents: 0, reason: 'Safety limit: inspect progress before resuming' };
+  if (runs > 12) return { ...state, enabled: false, unchanged, idleTools, runs, toolEvents: 0, reason: 'Safety limit: maximum 12 continuations; inspect progress before resuming' };
   return { ...state, digest: report.digest, unchanged, idleTools, runs, toolEvents: 0, reason: undefined };
 }

@@ -25,8 +25,9 @@ failure modes rather than adding another autonomous supervisor.
   event consumer without removing tools from other OpenCode contexts.
 - **Replay protection:** durable event identities and a persisted prompt claim
   prevent repeat delivery from queuing the same continuation twice.
-- **Bounded execution:** 12 continuations, unchanged-checklist limits and
-  tool-activity stagnation detection.
+- **Bounded execution:** 12 continuations and stagnation detection when the
+  checklist is unchanged and no tools are called. An unchanged checklist alone
+  does not stop work within a complex item.
 - **Explicit recovery:** pause, resume without resetting counters, and a separate
   `blocked_external` state with a concrete reason.
 - **Optional verification gate:** a user-supplied executable decides completion;
